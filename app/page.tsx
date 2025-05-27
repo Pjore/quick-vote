@@ -1,55 +1,53 @@
-import { Suspense } from "react"
-import { cookies } from "next/headers"
-import { Navbar } from "@/components/navbar"
-import { TopicCard } from "@/components/topic-card"
-import { getTopicsWithScores } from "@/lib/db"
+import { getTopicsByScore } from "./actions"
+import { UserTopicCard } from "@/components/user-topic-card"
+import { NavBar } from "@/components/nav-bar"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { Plus } from "lucide-react"
+import { initializeDatabase } from "@/lib/db-init"
 
 export default async function Home() {
-  const topics = await getTopicsWithScores()
+  // Initialize database if needed
+  await initializeDatabase()
 
-  // Get session ID from cookies
-  const cookieStore = cookies()
-  const sessionId = cookieStore.get("user_session_id")?.value || ""
+  // Fetch topics
+  const topics = await getTopicsByScore()
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-1 container py-8 px-4 mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Lightning Talk Topics</h1>
-          <p className="text-muted-foreground">
-            Topics are ranked based on user preferences.{" "}
-            <Link href="/my-votes" className="underline">
-              Rank them yourself!
+    <main className="min-h-screen bg-background">
+      <NavBar />
+
+      <div className="max-w-7xl mx-auto py-8 px-4">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Top Lightning Talk Topics</h1>
+
+          <Button asChild>
+            <Link href="/add">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Topic
             </Link>
-          </p>
+          </Button>
         </div>
 
-        <Suspense fallback={<div>Loading topics...</div>}>
-          {topics.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {topics.map((topic, index) => (
-                <TopicCard
-                  key={topic.id}
-                  topic={topic}
-                  isOwner={topic.user_session_id === sessionId}
-                  ranking={index + 1}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <h2 className="text-xl font-semibold mb-2">No topics yet</h2>
-              <p className="text-muted-foreground mb-6">Be the first to add a topic for discussion!</p>
-              <Link href="/add-topic">
-                <Button>Add Topic</Button>
+        {topics.length === 0 ? (
+          <div className="text-center py-12">
+            <h2 className="text-xl font-medium mb-4">No topics yet</h2>
+            <p className="text-muted-foreground mb-6">Be the first to propose a lightning talk topic!</p>
+            <Button asChild>
+              <Link href="/add">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Topic
               </Link>
-            </div>
-          )}
-        </Suspense>
-      </main>
-    </div>
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {topics.map((topic) => (
+              <UserTopicCard key={topic.id} topic={topic} />
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
   )
 }
