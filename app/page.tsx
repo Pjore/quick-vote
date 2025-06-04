@@ -20,13 +20,6 @@ export default async function Home() {
       <div className="max-w-7xl mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Top Lightning Talk Topics</h1>
-
-          <Button asChild>
-            <Link href="/add">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Topic
-            </Link>
-          </Button>
         </div>
 
         {topics.length === 0 ? (
